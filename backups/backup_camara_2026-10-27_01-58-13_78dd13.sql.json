@@ -1,0 +1,8 @@
+{
+    "filename": "backup_camara_2026-10-27_01-58-13_78dd13.sql",
+    "created_at": "2026-10-27 01:58:15",
+    "size_bytes": 78894,
+    "sha256": "186d81370bb8b7ed984d3eb1468be27eb40d8ee90ea139fc62b93390c8a74e24",
+    "notes": "Backup inicial automatizado",
+    "method": "mysqldump"
+}

@@ -1,0 +1,14 @@
+{
+  "name": "camara-digital-license-server",
+  "version": "1.0.0",
+  "description": "Servidor Central de Licenciamento, Assinaturas e Trava Anti-Cópia (Kill-Switch) para o ERP Câmara Digital na Vercel",
+  "private": true,
+  "scripts": {
+    "dev": "vercel dev",
+    "deploy": "vercel --prod"
+  },
+  "engines": {
+    "node": ">=18.x"
+  }
+}
+

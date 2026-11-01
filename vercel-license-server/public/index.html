@@ -1,0 +1,375 @@
+<!DOCTYPE html>
+<html lang="pt-BR" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Câmara Digital — Painel Master de Licenciamento & Kill-Switch (Vercel)</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen font-sans antialiased">
+
+  <!-- Topbar -->
+  <header class="border-b border-slate-800 bg-slate-900/90 backdrop-blur sticky top-0 z-40">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-rose-600 to-indigo-600 flex items-center justify-center text-white font-bold shadow-lg shadow-rose-600/20">
+          <i class="fa-solid fa-shield-keyhole"></i>
+        </div>
+        <div>
+          <div class="flex items-center gap-2">
+            <span class="font-bold text-base tracking-tight text-white">CâmaraDigital <span class="text-rose-500">Guard</span></span>
+            <span class="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">Vercel Serverless</span>
+          </div>
+          <p class="text-[11px] text-slate-400">Console Exclusivo do Desenvolvedor • Controle de Assinaturas, Kill-Switch & Anti-Cópia</p>
+        </div>
+      </div>
+
+      <div class="flex items-center gap-3">
+        <div class="flex items-center gap-2 bg-slate-950 border border-slate-800 rounded-lg px-3 py-1.5 text-xs">
+          <i class="fa-solid fa-key text-amber-400"></i>
+          <input type="password" id="dev-pin" value="admin2026" placeholder="PIN do Dev" class="bg-transparent text-white focus:outline-none w-28 font-mono text-xs">
+        </div>
+        <button onclick="openNewLicenseModal()" class="px-3.5 py-2 bg-sky-600 hover:bg-sky-500 text-white font-semibold text-xs rounded-lg shadow transition">
+          <i class="fa-solid fa-plus mr-1"></i> Nova Licença Municipal
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
+
+    <!-- KPIs -->
+    <div class="grid grid-cols-1 sm:grid-cols-4 gap-4">
+      <div class="bg-slate-900 border border-slate-800 rounded-xl p-5">
+        <span class="text-[11px] font-bold uppercase tracking-wider text-slate-400">Câmaras Licenciadas</span>
+        <p class="text-2xl font-bold text-white mt-1" id="kpi-total">2</p>
+        <span class="text-[11px] text-slate-500">Contratos monitorados via Heartbeat</span>
+      </div>
+      <div class="bg-slate-900 border border-slate-800 rounded-xl p-5">
+        <span class="text-[11px] font-bold uppercase tracking-wider text-emerald-400">Assinaturas Ativas</span>
+        <p class="text-2xl font-bold text-emerald-400 mt-1" id="kpi-active">2</p>
+        <span class="text-[11px] text-slate-500">Operando normalmente</span>
+      </div>
+      <div class="bg-slate-900 border border-slate-800 rounded-xl p-5">
+        <span class="text-[11px] font-bold uppercase tracking-wider text-rose-400">Travadas (Kill-Switch / Cópia)</span>
+        <p class="text-2xl font-bold text-rose-400 mt-1" id="kpi-blocked">0</p>
+        <span class="text-[11px] text-slate-500">Bloqueio por inadimplência ou pirataria</span>
+      </div>
+      <div class="bg-slate-900 border border-slate-800 rounded-xl p-5">
+        <span class="text-[11px] font-bold uppercase tracking-wider text-sky-400">Receita Recorrente (MRR)</span>
+        <p class="text-2xl font-bold text-sky-400 font-mono mt-1" id="kpi-mrr">R$ 4.750,00</p>
+        <span class="text-[11px] text-slate-500">Mensalidades de manutenção/IA</span>
+      </div>
+    </div>
+
+    <!-- Gerador Criptográfico Offline/Online de Token (Para colar direto na Câmara se sem internet) -->
+    <div class="bg-gradient-to-r from-slate-900 via-indigo-950/60 to-slate-900 border border-indigo-500/30 rounded-2xl p-6 space-y-4">
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+        <div>
+          <span class="text-[10px] font-bold uppercase tracking-wider text-indigo-400 bg-indigo-500/10 px-2 py-0.5 rounded border border-indigo-500/20">Criptografia HMAC-SHA256</span>
+          <h2 class="text-base font-bold text-white mt-1">Gerador de Chave de Desbloqueio / Trava Vinculada ao Hardware (Anti-Cópia)</h2>
+          <p class="text-xs text-slate-400">Gere um token assinado vinculado ao Fingerprint único do servidor da Câmara. Se alguém copiar os arquivos PHP para outro servidor, o sistema trava automaticamente.</p>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 sm:grid-cols-5 gap-3 text-xs">
+        <div>
+          <label class="block text-slate-400 mb-1">Chave da Licença</label>
+          <input type="text" id="gen-key" value="LIC-60F99A8D-2026-PRO" class="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-lg text-white font-mono">
+        </div>
+        <div>
+          <label class="block text-slate-400 mb-1">Fingerprint do Servidor (Hash)</label>
+          <input type="text" id="gen-fp" placeholder="Cole o Fingerprint exibido na Câmara" class="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-lg text-white font-mono">
+        </div>
+        <div>
+          <label class="block text-slate-400 mb-1">Ação / Status</label>
+          <select id="gen-status" class="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-lg text-white">
+            <option value="active">ATIVO (Liberar Acesso)</option>
+            <option value="suspended">SUSPENSO (Travar por Inadimplência)</option>
+            <option value="blocked_copy">BLOQUEADO (Travar Cópia Não Autorizada)</option>
+          </select>
+        </div>
+        <div>
+          <label class="block text-slate-400 mb-1">Validade da Assinatura</label>
+          <input type="date" id="gen-exp" value="2027-10-30" class="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-lg text-white">
+        </div>
+        <div class="flex items-end">
+          <button onclick="generateClientToken()" class="w-full py-2 bg-indigo-600 hover:bg-indigo-500 text-white font-bold rounded-lg shadow transition">
+            <i class="fa-solid fa-signature mr-1"></i> Assinar Token
+          </button>
+        </div>
+      </div>
+
+      <div id="token-result-box" class="hidden pt-3 border-t border-slate-800 space-y-2">
+        <div class="flex items-center justify-between text-xs">
+          <span class="text-emerald-400 font-semibold"><i class="fa-solid fa-check-circle mr-1"></i> Token Assinado Gerado (Cole na tela de Licença da Câmara):</span>
+          <button onclick="copyGeneratedToken()" class="text-xs text-sky-400 hover:underline"><i class="fa-regular fa-copy mr-1"></i> Copiar Token</button>
+        </div>
+        <textarea id="generated-token-output" rows="2" readonly class="w-full p-2.5 bg-slate-950 border border-emerald-500/40 rounded-lg font-mono text-[11px] text-emerald-300"></textarea>
+      </div>
+    </div>
+
+    <!-- Tabela de Câmaras e Kill-Switch -->
+    <div class="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden shadow-xl">
+      <div class="p-4 border-b border-slate-800 flex items-center justify-between">
+        <div class="flex items-center gap-2">
+          <i class="fa-solid fa-building-columns text-sky-400"></i>
+          <h3 class="text-xs font-bold uppercase tracking-wider text-slate-200">Instalações Monitoradas & Controle de Inadimplência</h3>
+        </div>
+        <button onclick="loadLicenses()" class="text-xs text-slate-400 hover:text-white">
+          <i class="fa-solid fa-rotate mr-1"></i> Atualizar Status
+        </button>
+      </div>
+
+      <div class="overflow-x-auto">
+        <table class="w-full text-left text-xs text-slate-300">
+          <thead class="bg-slate-950 text-[11px] uppercase text-slate-500 border-b border-slate-800">
+            <tr>
+              <th class="p-3.5">Câmara Municipal / CNPJ</th>
+              <th class="p-3.5">Chave de Licença</th>
+              <th class="p-3.5">Trava Anti-Cópia (Fingerprint)</th>
+              <th class="p-3.5">Vencimento</th>
+              <th class="p-3.5">Status Atual</th>
+              <th class="p-3.5 text-right">Controle do Desenvolvedor (Kill-Switch)</th>
+            </tr>
+          </thead>
+          <tbody id="licenses-tbody" class="divide-y divide-slate-800">
+            <!-- Preenchido via JS -->
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+  </main>
+
+  <!-- Modal Nova Licença -->
+  <div id="new-lic-modal" class="fixed inset-0 z-50 hidden bg-black/70 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="bg-slate-900 border border-slate-700 rounded-2xl max-w-md w-full overflow-hidden shadow-2xl">
+      <div class="p-4 border-b border-slate-800 flex items-center justify-between">
+        <h3 class="text-sm font-bold text-white">Cadastrar Nova Câmara Licenciada</h3>
+        <button onclick="document.getElementById('new-lic-modal').classList.add('hidden')" class="text-slate-400 hover:text-white"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+      <div class="p-5 space-y-3 text-xs">
+        <div>
+          <label class="block text-slate-400 mb-1">Nome da Câmara Municipal</label>
+          <input type="text" id="new-mun" placeholder="Ex: Câmara Municipal de Dourados - MS" class="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-lg text-white">
+        </div>
+        <div>
+          <label class="block text-slate-400 mb-1">CNPJ do Órgão</label>
+          <input type="text" id="new-cnpj" placeholder="00.000.000/0001-00" class="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-lg text-white">
+        </div>
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-slate-400 mb-1">Mensalidade (R$)</label>
+            <input type="number" id="new-fee" value="2500" class="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-lg text-white">
+          </div>
+          <div>
+            <label class="block text-slate-400 mb-1">Vencimento</label>
+            <input type="date" id="new-exp" value="2027-12-31" class="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-lg text-white">
+          </div>
+        </div>
+        <div class="pt-3 flex justify-end gap-2">
+          <button onclick="document.getElementById('new-lic-modal').classList.add('hidden')" class="px-4 py-2 border border-slate-700 rounded-lg text-slate-300">Cancelar</button>
+          <button onclick="createNewLicense()" class="px-4 py-2 bg-sky-600 hover:bg-sky-500 text-white font-bold rounded-lg">Emitir Licença</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const MASTER_SECRET = 'CAMARA_DEV_MASTER_SECRET_2026';
+
+    async function hmacSha256Hex(secret, message) {
+      const enc = new TextEncoder();
+      const key = await crypto.subtle.importKey(
+        'raw', enc.encode(secret), { name: 'HMAC', hash: 'SHA-256' }, false, ['sign']
+      );
+      const sig = await crypto.subtle.sign('HMAC', key, enc.encode(message));
+      return Array.from(new Uint8Array(sig)).map(b => b.toString(16).padStart(2, '0')).join('');
+    }
+
+    async function generateClientToken() {
+      const key = document.getElementById('gen-key').value.trim();
+      const fp = document.getElementById('gen-fp').value.trim() || 'ANY';
+      const status = document.getElementById('gen-status').value;
+      const exp = document.getElementById('gen-exp').value;
+
+      const payload = `${key}|${status}|${exp}|${fp}`;
+      const hmac = await hmacSha256Hex(MASTER_SECRET, payload);
+
+      const tokenObj = {
+        license_key: key,
+        status: status,
+        expires_at: exp,
+        server_fingerprint: fp,
+        block_reason: status === 'active' ? '' : 'Bloqueio administrativo acionado pelo Desenvolvedor.',
+        signature_hmac: hmac,
+        issued_at: new Date().toISOString()
+      };
+
+      const base64Token = btoa(unescape(encodeURIComponent(JSON.stringify(tokenObj))));
+      document.getElementById('generated-token-output').value = base64Token;
+      document.getElementById('token-result-box').classList.remove('hidden');
+    }
+
+    function copyGeneratedToken() {
+      const el = document.getElementById('generated-token-output');
+      el.select();
+      document.execCommand('copy');
+      alert('Token copiado para a área de transferência!');
+    }
+
+    async function loadLicenses() {
+      try {
+        const res = await fetch('/api/licenses');
+        const data = await res.json();
+        renderTable(data.licenses || []);
+      } catch (e) {
+        // Fallback caso aberto diretamente via arquivo local
+        renderTable([
+          {
+            id: 1,
+            municipality: 'Câmara Municipal de Campo Grande - MS',
+            cnpj: '03.243.511/0001-80',
+            license_key: 'LIC-60F99A8D-2026-PRO',
+            monthly_fee: 2800,
+            status: 'active',
+            server_fingerprint: 'VINCULADO_NO_1O_ACESSO',
+            expires_at: '2027-10-30'
+          },
+          {
+            id: 2,
+            municipality: 'Câmara Municipal de Bonito - MS',
+            cnpj: '01.554.212/0001-30',
+            license_key: 'LIC-9D31B42A-2026-PRO',
+            monthly_fee: 1950,
+            status: 'active',
+            server_fingerprint: 'VINCULADO_NO_1O_ACESSO',
+            expires_at: '2027-10-30'
+          }
+        ]);
+      }
+    }
+
+    function renderTable(licenses) {
+      const tbody = document.getElementById('licenses-tbody');
+      tbody.innerHTML = '';
+
+      let activeCount = 0;
+      let blockedCount = 0;
+      let mrr = 0;
+
+      licenses.forEach(l => {
+        if (l.status === 'active') {
+          activeCount++;
+          mrr += Number(l.monthly_fee || 0);
+        } else {
+          blockedCount++;
+        }
+
+        const badgeClass = l.status === 'active'
+          ? 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30'
+          : 'bg-rose-500/20 text-rose-400 border-rose-500/30';
+
+        const statusLabel = l.status === 'active'
+          ? 'ATIVA / EM DIA'
+          : (l.status === 'blocked_copy' ? 'BLOQUEADA (CÓPIA PIRATA)' : 'TRAVADA (INADIMPLENTE)');
+
+        const tr = document.createElement('tr');
+        tr.className = 'hover:bg-slate-900/60';
+        tr.innerHTML = `
+          <td class="p-3.5">
+            <p class="font-bold text-white">${l.municipality}</p>
+            <p class="text-[11px] text-slate-500 font-mono">CNPJ: ${l.cnpj}</p>
+          </td>
+          <td class="p-3.5 font-mono font-bold text-sky-400">${l.license_key}</td>
+          <td class="p-3.5 font-mono text-[11px] text-slate-400">
+            <span class="bg-slate-950 px-2 py-1 rounded border border-slate-800">${l.server_fingerprint ? l.server_fingerprint.substring(0, 18) + '...' : 'Aguardando 1º Heartbeat'}</span>
+          </td>
+          <td class="p-3.5 font-mono">${l.expires_at}</td>
+          <td class="p-3.5">
+            <span class="px-2.5 py-1 rounded-full text-[10px] font-bold border ${badgeClass}">${statusLabel}</span>
+          </td>
+          <td class="p-3.5 text-right space-x-1.5">
+            ${l.status === 'active'
+              ? `<button onclick="toggleStatus(${l.id}, 'suspended')" class="px-3 py-1.5 bg-rose-600 hover:bg-rose-500 text-white font-bold rounded-lg text-[11px] transition"><i class="fa-solid fa-lock mr-1"></i> Travar Sistema</button>`
+              : `<button onclick="toggleStatus(${l.id}, 'active')" class="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-lg text-[11px] transition"><i class="fa-solid fa-lock-open mr-1"></i> Liberar Acesso</button>`
+            }
+            <button onclick="resetFp(${l.id})" class="px-2.5 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-lg text-[11px]" title="Resetar vínculo de servidor (autorizar migração)">
+              <i class="fa-solid fa-microchip"></i> Resetar Hardware
+            </button>
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+
+      document.getElementById('kpi-total').textContent = licenses.length;
+      document.getElementById('kpi-active').textContent = activeCount;
+      document.getElementById('kpi-blocked').textContent = blockedCount;
+      document.getElementById('kpi-mrr').textContent = 'R$ ' + mrr.toLocaleString('pt-BR', { minimumFractionDigits: 2 });
+    }
+
+    async function toggleStatus(id, newStatus) {
+      const pin = document.getElementById('dev-pin').value;
+      const reason = newStatus === 'suspended'
+        ? prompt('Motivo do bloqueio (será exibido na tela da Câmara):', 'Assinatura suspensa por pendência financeira. Entre em contato com o suporte comercial.')
+        : null;
+      if (newStatus === 'suspended' && reason === null) return;
+
+      const res = await fetch('/api/licenses', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'X-Dev-Master-Key': pin },
+        body: JSON.stringify({ action: 'toggle_status', id, new_status: newStatus, block_reason: reason })
+      });
+      if (res.ok) {
+        loadLicenses();
+      } else {
+        const err = await res.json();
+        alert(err.error || 'Erro ao alterar status');
+      }
+    }
+
+    async function resetFp(id) {
+      const pin = document.getElementById('dev-pin').value;
+      const res = await fetch('/api/licenses', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'X-Dev-Master-Key': pin },
+        body: JSON.stringify({ action: 'reset_fingerprint', id })
+      });
+      if (res.ok) {
+        alert('Vínculo de hardware resetado! O próximo servidor a conectar será vinculado automaticamente.');
+        loadLicenses();
+      }
+    }
+
+    function openNewLicenseModal() {
+      document.getElementById('new-lic-modal').classList.remove('hidden');
+    }
+
+    async function createNewLicense() {
+      const pin = document.getElementById('dev-pin').value;
+      const municipality = document.getElementById('new-mun').value;
+      const cnpj = document.getElementById('new-cnpj').value;
+      const monthly_fee = document.getElementById('new-fee').value;
+      const expires_at = document.getElementById('new-exp').value;
+
+      const res = await fetch('/api/licenses', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'X-Dev-Master-Key': pin },
+        body: JSON.stringify({ action: 'create', municipality, cnpj, monthly_fee, expires_at })
+      });
+      if (res.ok) {
+        document.getElementById('new-lic-modal').classList.add('hidden');
+        loadLicenses();
+      } else {
+        const err = await res.json();
+        alert(err.error || 'Erro ao criar licença');
+      }
+    }
+
+    loadLicenses();
+  </script>
+</body>
+</html>
+
